@@ -1,3 +1,1 @@
-export const func = (name: string) => {
-  return name
-}
+export const func = (name: string) => name;

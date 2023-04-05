@@ -1,16 +1,19 @@
-import path from 'path'
+import path from 'path';
 
-import typescript from 'rollup-plugin-typescript2'
-import babel from 'rollup-plugin-babel'
+import typescript from 'rollup-plugin-typescript2';
+import babel from 'rollup-plugin-babel';
 
-const resolve = (...args) => path.resolve(__dirname, ...args)
+import pkg from './package.json';
+
+const resolve = (...args) => path.resolve(__dirname, ...args);
 
 export default {
   input: 'src/index.ts',
   output: [
     {
-      file: 'dist/index.js',
+      file: resolve(pkg.main),
       format: 'cjs',
+      exports: 'named',
     },
     {
       file: 'dist/index.esm.js',
@@ -28,4 +31,4 @@ export default {
       configFile: resolve('babel.config.js'),
     }),
   ],
-}
+};

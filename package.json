@@ -2,7 +2,9 @@
   "name": "code-analysis",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "typings": "dist/index.d.ts",
   "scripts": {
     "dev": "rimraf dist && rollup -c -w",
     "build": "rimraf dist && rollup -c",
@@ -19,8 +21,8 @@
   "lint-staged": {
     "!(*test).(j|t)s": [
       "prettier --write",
-      "eslint",
-      "eslint --fix"
+      "eslint --fix",
+      "eslint"
     ]
   },
   "keywords": [],
@@ -38,6 +40,8 @@
     "@typescript-eslint/eslint-plugin": "^5.57.1",
     "@typescript-eslint/parser": "^5.57.1",
     "eslint": "^8.37.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-promise": "^6.1.1",
     "husky": "^3.1.0",
     "lint-staged": "10.5.4",
     "prettier": "^2.8.7",
