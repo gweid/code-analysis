@@ -1,7 +1,7 @@
 import path from 'path';
 
 import typescript from 'rollup-plugin-typescript2';
-import babel from 'rollup-plugin-babel';
+// import babel from 'rollup-plugin-babel';
 
 import pkg from './package.json';
 
@@ -24,11 +24,11 @@ export default {
     typescript({
       tsconfig: './tsconfig.json',
     }),
-    babel({
-      extensions: ['.js', '.ts'],
-      runtimeHelpers: true,
-      exclude: 'node_modules/**', // 忽略 node_modules
-      configFile: resolve('babel.config.js'),
-    }),
+    // babel({
+    //   extensions: ['.js', '.ts'],
+    //   runtimeHelpers: true,
+    //   exclude: 'node_modules/**', // 忽略 node_modules
+    //   configFile: resolve('babel.config.js'),
+    // }),
   ],
 };
