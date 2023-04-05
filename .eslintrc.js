@@ -96,7 +96,6 @@ module.exports = {
     ],
     'semi-style': [2, 'last'], // 强制分号的位置
     semi: [2, 'always'], // 语句必须分号结尾
-    'jsx-quotes': [2, 'prefer-double'], // JSX元素中的字符串必须使用双引号
     quotes: [2, 'single'], // 字符串必须使用单引号
     '@typescript-eslint/member-delimiter-style': [
       2,
@@ -163,7 +162,6 @@ module.exports = {
     // 为.js文件设置覆盖规则
     {
       files: ['./**/*.js'],
-      excludedFiles: '*.spec.js',
       rules: {
         'no-var': 0,
       },
