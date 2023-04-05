@@ -1,1 +1,3 @@
-export const func = (name: string) => name;
+import CodeAnalysis from './lib/index';
+
+export default CodeAnalysis;
