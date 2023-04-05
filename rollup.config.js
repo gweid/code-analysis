@@ -1,5 +1,7 @@
 import path from 'path';
 
+import commonjs from '@rollup/plugin-commonjs';
+import nodeResolve from '@rollup/plugin-node-resolve'; // 引用第三方包
 import typescript from 'rollup-plugin-typescript2';
 // import babel from 'rollup-plugin-babel';
 
@@ -21,6 +23,8 @@ export default {
     },
   ],
   plugins: [
+    commonjs(),
+    nodeResolve(),
     typescript({
       tsconfig: './tsconfig.json',
     }),
