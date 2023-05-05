@@ -1,3 +1,3 @@
-import CodeAnalysis from './lib/index';
+import CodeAnalysis from './analysis';
 
 export { CodeAnalysis };

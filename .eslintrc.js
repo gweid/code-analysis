@@ -33,7 +33,13 @@ module.exports = {
     'one-var-declaration-per-line': 2, // 禁止一次性定义多个变量
     'no-inner-declarations': 1, // 禁止在嵌套的块中出现变量声明或 function 声明  --CUSTOM
 
-    '@typescript-eslint/naming-convention': 2, // 整体命名风格, https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/naming-convention.md
+    '@typescript-eslint/naming-convention': [
+      'error',
+      {
+        selector: 'variable',
+        format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+      },
+    ], // 整体命名风格, https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/naming-convention.md
     '@typescript-eslint/explicit-function-return-type': 0, // 对返回类型不明确的函数必须声明类型
     '@typescript-eslint/no-use-before-define': 0, // 在定义变量和函数之前禁止使用
     '@typescript-eslint/no-inferrable-types': 0, // 不允许对初始化为数字，字符串或布尔值的变量或参数进行显式类型声明
