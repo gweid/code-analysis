@@ -1,7 +1,7 @@
 import path from 'path';
 import { sync as globSync } from 'glob';
 
-// 扫描 js/ts/jsx/tsx 文件
+// 扫描 js/ts/jsx/tsx 文件，返回文件路径合集
 export const scanNormalFiles = (scanPath: string) => {
   const fileExt = ['js', 'jsx', 'ts', 'tsx'];
 

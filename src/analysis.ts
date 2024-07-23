@@ -29,6 +29,7 @@ class CodeAnalysis implements ICodeAnalysis {
     this._scanSource = options.scanSource;
   }
 
+  // 根据配置文件中需要扫描的文件目录，返回文件目录合集
   _scanFiles(scanSource: IScanSourceItem[], type: CODEFILETYPE) {
     const entry: any[] = [];
     scanSource.forEach((item) => {
@@ -39,6 +40,7 @@ class CodeAnalysis implements ICodeAnalysis {
     return entry;
   }
 
+  // 分析代码
   _scanCode(scanSource: IScanSourceItem[], type: CODEFILETYPE) {
     const entry = this._scanFiles(scanSource, type);
     entry.forEach((item) => {
