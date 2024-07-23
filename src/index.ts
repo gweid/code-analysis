@@ -1,3 +1,3 @@
 import CodeAnalysis from './analysis';
 
-export { CodeAnalysis };
+export default CodeAnalysis;

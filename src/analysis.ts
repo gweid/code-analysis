@@ -1,51 +1,47 @@
 import tsCompiler from 'typescript';
 
-// import { scanNormalFiles } from './utils/file';
+import { scanNormalFiles } from './utils/file';
 // import { parseFiles } from './utils/parse';
 import { CODEFILETYPE } from './constant';
 
 interface ICodeAnalysis {
-  _scanSource: string;
-  _scanFiles(scanSource: IScanSourceItem[], type: CODEFILETYPE): any[];
-  _scanCode(scanSource: IScanSourceItem[], type: CODEFILETYPE): void;
+  _scanSource: string[];
+  _scanFiles(scanSource: string[], type: CODEFILETYPE): any[];
+  _scanCode(scanSource: string[], type: CODEFILETYPE): void;
   _findImportItem(ast: tsCompiler.Node, filePath: string, baseLine?: number): void;
 }
 
 interface IOptions {
-  scanSource: string;
-}
-
-interface IScanSourceItem {
-  name: string;
-  httpRepo: string;
-  path: string;
-  format?: any;
+  scanSource: string[];
 }
 
 class CodeAnalysis implements ICodeAnalysis {
-  _scanSource: string;
+  _scanSource: string[];
 
   constructor(options: IOptions) {
     this._scanSource = options.scanSource;
   }
 
   // 根据配置文件中需要扫描的文件目录，返回文件目录合集
-  _scanFiles(scanSource: IScanSourceItem[], type: CODEFILETYPE) {
-    const entry: any[] = [];
+  _scanFiles(scanSource: string[], type: CODEFILETYPE) {
+    const entry: string[] = [];
     scanSource.forEach((item) => {
       if (type === CODEFILETYPE.NORMAL) {
-        console.log(item);
+        const res = scanNormalFiles(item);
+        entry.push(...res);
       }
     });
     return entry;
   }
 
   // 分析代码
-  _scanCode(scanSource: IScanSourceItem[], type: CODEFILETYPE) {
+  _scanCode(scanSource: string[], type: CODEFILETYPE) {
     const entry = this._scanFiles(scanSource, type);
-    entry.forEach((item) => {
-      console.log(item);
-    });
+    // entry.forEach((item) => {
+    //   console.log(item);
+    // });
+
+    return entry;
   }
 
   _findImportItem(ast: tsCompiler.SourceFile, filePath: string, baseLine = 0) {
@@ -58,6 +54,12 @@ class CodeAnalysis implements ICodeAnalysis {
         console.log(node);
       }
     };
+  }
+
+  // 入口函数
+  analysis() {
+    const entry = this._scanCode(this._scanSource, CODEFILETYPE.NORMAL);
+    return entry;
   }
 }
 
