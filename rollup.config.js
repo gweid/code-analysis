@@ -18,7 +18,7 @@ export default {
       exports: 'named',
     },
     {
-      file: 'dist/index.esm.js',
+      file: resolve(pkg.module),
       format: 'es',
       exports: 'named',
     },
@@ -28,6 +28,7 @@ export default {
     nodeResolve(),
     typescript({
       tsconfig: './tsconfig.json',
+      clean: true,
     }),
     // babel({
     //   extensions: ['.js', '.ts'],
@@ -36,4 +37,8 @@ export default {
     //   configFile: resolve('babel.config.js'),
     // }),
   ],
+  watch: {
+    include: 'src/**', // 监听 src 目录下的所有文件
+    exclude: 'node_modules/**', // 排除 node_modules 目录
+  },
 };

@@ -6,7 +6,8 @@
   "module": "dist/index.esm.js",
   "typings": "dist/index.d.ts",
   "scripts": {
-    "dev": "rimraf dist && rollup -c -w",
+    "start": "rimraf dist && rollup -c -w",
+    "watch": "rollup -c -w",
     "build": "rimraf dist && rollup -c",
     "lint": "eslint --ext .js,.ts src/",
     "lint:fix": "eslint --ext .js,.ts src/ --fix",

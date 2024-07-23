@@ -1,7 +1,7 @@
 import tsCompiler from 'typescript';
 
 import { scanNormalFiles } from './utils/file';
-// import { parseFiles } from './utils/parse';
+import { parseFiles } from './utils/parse';
 import { CODEFILETYPE } from './constant';
 
 interface ICodeAnalysis {
@@ -37,11 +37,10 @@ class CodeAnalysis implements ICodeAnalysis {
   // 分析代码
   _scanCode(scanSource: string[], type: CODEFILETYPE) {
     const entry = this._scanFiles(scanSource, type);
-    // entry.forEach((item) => {
-    //   console.log(item);
-    // });
-
-    return entry;
+    entry.forEach((filePath) => {
+      const { ast, checker } = parseFiles(filePath);
+      this._findImportItem(ast as tsCompiler.SourceFile, filePath);
+    });
   }
 
   _findImportItem(ast: tsCompiler.SourceFile, filePath: string, baseLine = 0) {
@@ -49,17 +48,17 @@ class CodeAnalysis implements ICodeAnalysis {
     const walk = (node: tsCompiler.SourceFile | tsCompiler.Node) => {
       tsCompiler.forEachChild(node, walk);
       const line = ast.getLineAndCharacterOfPosition(node.getStart()).line + baseLine + 1;
-
       if (tsCompiler.isImportDeclaration(node)) {
-        console.log(node);
+        // console.log(node);
       }
     };
+
+    walk(ast);
   }
 
   // 入口函数
   analysis() {
-    const entry = this._scanCode(this._scanSource, CODEFILETYPE.NORMAL);
-    return entry;
+    this._scanCode(this._scanSource, CODEFILETYPE.NORMAL);
   }
 }
 

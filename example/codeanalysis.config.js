@@ -1,3 +1,3 @@
 module.exports = {
-  scanSource: ['src'],
+  scanSource: ['example/src'],
 };
