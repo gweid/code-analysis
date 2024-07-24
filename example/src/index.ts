@@ -15,3 +15,11 @@ console.log(testTxt);
 console.log(testTxt1);
 console.log(utilsTxt);
 console.log(toolFuncTxt);
+
+const fullFunc = () => {
+  const toolFunc = () => 'fullFunc --> toolFunc';
+
+  return toolFunc();
+};
+
+console.log(fullFunc());

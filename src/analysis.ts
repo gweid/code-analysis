@@ -18,6 +18,14 @@ interface ITemp {
   line: number; // 导入 API 的import语句所在代码行信息
 }
 
+type IImportItems = Record<string, ITemp>;
+
+interface IPropertyAccess {
+  baseNode: tsCompiler.Identifier | tsCompiler.PropertyAccessExpression;
+  depth: number;
+  apiName: string;
+}
+
 class CodeAnalysis {
   _scanSource: string[];
 
@@ -39,20 +47,27 @@ class CodeAnalysis {
 
   // 分析代码
   _scanCode(scanSource: string[], type: CODEFILETYPE) {
+    // 1、扫描所有需要分析的代码文件，得到文件路径合集
     const entry = this._scanFiles(scanSource, type);
+
     entry.forEach((filePath) => {
-      const { ast } = parseFiles(filePath);
+      // 2、代码文件解析为 AST
+      const { ast, checker } = parseFiles(filePath);
+
+      // 3、遍历 AST 搜集 import 节点信息
       const importItems = this._findImportItem(ast as tsCompiler.SourceFile, filePath);
 
-      // if (Object.keys(importItems).length) {
-
-      // }
+      // 4、遍历 AST ，对比收集到的 import 节点信息，分析 API 调用
+      if (Object.keys(importItems).length) {
+        this._dealAST(importItems, ast as tsCompiler.SourceFile, checker, filePath);
+      }
     });
   }
 
+  // 收集节点信息
   _findImportItem(ast: tsCompiler.SourceFile, filePath: string, baseLine = 0) {
     const that = this;
-    const importItems: Record<string, ITemp> = {};
+    const importItems: IImportItems = {};
 
     // 用于记录导入的API及相关信息
     const dealImports = (temp: ITemp) => {
@@ -79,7 +94,7 @@ class CodeAnalysis {
           const importClause = node.importClause;
 
           if (importClause) {
-            // 处理 import utilsFunc from 'xxxx'
+            // 处理 import yyyy from 'xxxx'
             if (importClause.name) {
               const temp = {
                 name: importClause.name.escapedText as string,
@@ -96,7 +111,7 @@ class CodeAnalysis {
             const namedBindings = importClause.namedBindings;
 
             if (namedBindings) {
-              // 处理 import * as utilsTool from 'xxxx'
+              // 处理 import * as yyyy from 'xxxx'
               if (tsCompiler.isNamespaceImport(namedBindings) && namedBindings.name) {
                 const temp = {
                   name: namedBindings.name.escapedText as string,
@@ -112,8 +127,8 @@ class CodeAnalysis {
 
               /**
                * 处理
-               * import { getFullName } from 'xxxx'
-               * import { testFunc as getTest } from 'xxxx'
+               * import { yyyy } from 'xxxx'
+               * import { yyyy as kkkk } from 'xxxx'
                */
               if (tsCompiler.isNamedImports(namedBindings)) {
                 const eleList = namedBindings.elements;
@@ -146,9 +161,64 @@ class CodeAnalysis {
   }
 
   // ast 分析
-  // _dealAST(importItems: ITemp[], ast: tsCompiler.SourceFile, checker: tsCompiler.TypeChecker, filePath: string) {
+  _dealAST(
+    importItems: IImportItems,
+    ast: tsCompiler.SourceFile | tsCompiler.Node,
+    checker: tsCompiler.TypeChecker,
+    filePath: string,
+  ) {
+    const importItemNames = Object.keys(importItems); // 获取所有导入的 API 名称
 
-  // }
+    const walk = (node: tsCompiler.SourceFile | tsCompiler.Node) => {
+      tsCompiler.forEachChild(node, walk);
+
+      // 判定当前遍历的节点是否为 isIdentifier 类型节点
+      // 判断从 Import 导入的 API 中是否存在与当前遍历节点名称相同的 API，这样就可以过滤掉那些不需要分析的
+      if (tsCompiler.isIdentifier(node) && node.escapedText && importItemNames.includes(node.escapedText)) {
+        const matchImportItem = importItems[node.escapedText];
+
+        // 这一步，主要是排除引入，比如 import yyyy from 'xxxx'，主要是要统计 API 调用，引入可以忽略
+        if (node.pos !== matchImportItem.identifierPos && node.end !== matchImportItem.identifierEnd) {
+          // 找到 symbolPos 与 symbolEnd 一致的节点
+          const symbol = checker.getSymbolAtLocation(node);
+          if (symbol && symbol.declarations && symbol.declarations.length) {
+            const nodeSymbol = symbol.declarations[0];
+            if (nodeSymbol.pos === matchImportItem.symbolPos && nodeSymbol.end === matchImportItem.symbolEnd) {
+              if (node.parent) {
+                const { baseNode, depth, apiName } = this._checkPropertyAccess(node);
+              }
+            }
+          }
+        }
+      }
+    };
+
+    walk(ast);
+  }
+
+  // 链式调用检查，找出链路顶点 node
+  _checkPropertyAccess(
+    node: tsCompiler.Identifier | tsCompiler.PropertyAccessExpression,
+    index = 0,
+    apiName = '',
+  ): IPropertyAccess {
+    if (index > 0 && tsCompiler.isPropertyAccessExpression(node)) {
+      apiName = `${apiName}.${node.name.escapedText}`;
+    } else if (tsCompiler.isIdentifier(node)) {
+      apiName = `${node.escapedText}`;
+    }
+
+    if (tsCompiler.isPropertyAccessExpression(node.parent)) {
+      index++;
+      return this._checkPropertyAccess(node.parent, index, apiName);
+    } else {
+      return {
+        baseNode: node, // 原始的 api
+        depth: index, // 调用了几层
+        apiName: apiName, // 链式调用 api 全路径
+      };
+    }
+  }
 
   // 入口函数
   analysis() {
