@@ -43,6 +43,15 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 0, // 对返回类型不明确的函数必须声明类型
     '@typescript-eslint/no-use-before-define': 0, // 在定义变量和函数之前禁止使用
     '@typescript-eslint/no-inferrable-types': 0, // 不允许对初始化为数字，字符串或布尔值的变量或参数进行显式类型声明
+    '@typescript-eslint/ban-ts-comment': [
+      'error',
+      {
+        'ts-ignore': false, // 允许使用 @ts-ignore
+        'ts-nocheck': true,
+        'ts-check': true,
+        'ts-expect-error': true,
+      },
+    ],
 
     // ============空格 && 缩进=============
     indent: [
