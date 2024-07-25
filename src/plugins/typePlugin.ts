@@ -1,10 +1,10 @@
 import { ICheckFunOpt } from './types/common.type';
 
-const defaultPlugin = () => {
-  const mapName = 'apiMap';
+const typePlugin = () => {
+  const mapName = 'typeMap';
 
   /**
-   * API 调用信息统计
+   * 主要用来判定引入的是否属于 ts 声明类型
    * @param context codeAnalysis分析实例上下文
    * @param tsCompiler typescript编译器
    * @param node 基准分析节点baseNode
@@ -16,7 +16,7 @@ const defaultPlugin = () => {
    * @param httpRepo 用于在代码分析报告展示在线浏览代码文件的http链接前缀
    * @param line  API调用所在代码文件中的行信息
    */
-  const isApiCheck = ({
+  const isTypeCheck = ({
     context,
     tsCompiler,
     node,
@@ -28,35 +28,37 @@ const defaultPlugin = () => {
     httpRepo,
     line,
   }: ICheckFunOpt) => {
-    if (!context[mapName][apiName]) {
-      context[mapName][apiName] = {};
-      context[mapName][apiName].callNum = 1;
-      context[mapName][apiName].callOrigin = matchImportItem.origin;
-      context[mapName][apiName].callFiles = {};
-      context[mapName][apiName].callFiles[filePath] = {};
-      context[mapName][apiName].callFiles[filePath].projectName = projectName;
-      context[mapName][apiName].callFiles[filePath].httpRepo = httpRepo;
-      context[mapName][apiName].callFiles[filePath].lines = [];
-      context[mapName][apiName].callFiles[filePath].lines.push(line);
-    } else {
-      context[mapName][apiName].callNum++;
-      if (!Object.keys(context[mapName][apiName].callFiles).includes(filePath)) {
+    if (node.parent && tsCompiler.isTypeReferenceNode(node.parent)) {
+      if (!context[mapName][apiName]) {
+        context[mapName][apiName] = {};
+        context[mapName][apiName].callNum = 1;
+        context[mapName][apiName].callOrigin = matchImportItem.origin;
+        context[mapName][apiName].callFiles = {};
         context[mapName][apiName].callFiles[filePath] = {};
         context[mapName][apiName].callFiles[filePath].projectName = projectName;
         context[mapName][apiName].callFiles[filePath].httpRepo = httpRepo;
         context[mapName][apiName].callFiles[filePath].lines = [];
         context[mapName][apiName].callFiles[filePath].lines.push(line);
       } else {
-        context[mapName][apiName].callFiles[filePath].lines.push(line);
+        context[mapName][apiName].callNum++;
+        if (!Object.keys(context[mapName][apiName].callFiles).includes(filePath)) {
+          context[mapName][apiName].callFiles[filePath] = {};
+          context[mapName][apiName].callFiles[filePath].projectName = projectName;
+          context[mapName][apiName].callFiles[filePath].httpRepo = httpRepo;
+          context[mapName][apiName].callFiles[filePath].lines = [];
+          context[mapName][apiName].callFiles[filePath].lines.push(line);
+        } else {
+          context[mapName][apiName].callFiles[filePath].lines.push(line);
+        }
       }
     }
   };
 
   return {
     mapName,
-    checkFun: isApiCheck,
+    checkFun: isTypeCheck,
     afterHook: null,
   };
 };
 
-export default defaultPlugin;
+export default typePlugin;

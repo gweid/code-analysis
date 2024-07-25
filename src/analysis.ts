@@ -10,10 +10,15 @@ import { IOptions, ITemp, IImportItems, IPropertyAccess } from './analysis.type'
 
 class CodeAnalysis {
   _scanSource: string[];
+  _analysisTarget: string;
+
   apiMap: Record<string, any> = {};
+  methodMap: Record<string, any> = {};
+  typeMap: Record<string, any> = {};
 
   constructor(options: IOptions) {
     this._scanSource = options.scanSource;
+    this._analysisTarget = options.analysisTarget;
   }
 
   // 根据配置文件中需要扫描的文件目录，返回文件目录合集
@@ -73,7 +78,7 @@ class CodeAnalysis {
       const line = ast.getLineAndCharacterOfPosition(node.getStart()).line + baseLine + 1;
       if (tsCompiler.isImportDeclaration(node)) {
         // @ts-ignore
-        if (node.moduleSpecifier && node.moduleSpecifier.text && node.moduleSpecifier.text === './utils') {
+        if (node.moduleSpecifier && node.moduleSpecifier.text && node.moduleSpecifier.text === this._analysisTarget) {
           const importClause = node.importClause;
 
           if (importClause) {
@@ -146,14 +151,16 @@ class CodeAnalysis {
   // ast 分析
   _dealAST(
     importItems: IImportItems,
-    ast: tsCompiler.SourceFile | tsCompiler.Node,
+    ast: tsCompiler.SourceFile,
     checker: tsCompiler.TypeChecker,
     filePath: string,
+    baseLine = 0,
   ) {
     const importItemNames = Object.keys(importItems); // 获取所有导入的 API 名称
 
     const walk = (node: tsCompiler.SourceFile | tsCompiler.Node) => {
       tsCompiler.forEachChild(node, walk);
+      const line = ast.getLineAndCharacterOfPosition(node.getStart()).line + baseLine + 1;
 
       // 判定当前遍历的节点是否为 isIdentifier 类型节点
       // 判断从 Import 导入的 API 中是否存在与当前遍历节点名称相同的 API，这样就可以过滤掉那些不需要分析的
@@ -182,7 +189,7 @@ class CodeAnalysis {
                   filePath,
                   projectName: '',
                   httpRepo: '',
-                  line: 0,
+                  line,
                 });
               }
             }
@@ -213,7 +220,7 @@ class CodeAnalysis {
       return {
         baseNode: node, // 原始的 api
         depth: index, // 调用了几层
-        apiName: apiName, // 链式调用 api 全路径
+        apiName, // 链式调用 api 全路径
       };
     }
   }

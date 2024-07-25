@@ -2,16 +2,17 @@ import tsCompiler from 'typescript';
 
 export interface IOptions {
   scanSource: string[];
+  analysisTarget: string;
 }
 
 export interface ITemp {
   name: string; // 导入后在代码中真实调用使用的 API 名
-  origin: string | null; // API 别名。null则表示该非别名导入，name就是原本名字
-  symbolPos: number; // symbol指向的声明节点在代码字符串中的起始位置
-  symbolEnd: number; // symbol指向的声明节点在代码字符串中的结束位置
+  origin: string | null; // API 别名。null 则表示该非别名导入，name 就是原本名字
+  symbolPos: number; // symbol 指向的声明节点在代码字符串中的起始位置
+  symbolEnd: number; // symbol 指向的声明节点在代码字符串中的结束位置
   identifierPos: number; // API 名字信息节点在代码字符串中的起始位置
   identifierEnd: number; // API 名字信息节点在代码字符串中的结束位置
-  line: number; // 导入 API 的import语句所在代码行信息
+  line: number; // 导入 API 的 import 语句所在代码行信息
 }
 
 export type IImportItems = Record<string, ITemp>;
