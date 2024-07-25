@@ -4,30 +4,13 @@ import { scanNormalFiles } from './utils/file';
 import { parseFiles } from './utils/parse';
 import { CODEFILETYPE } from './constant';
 
-interface IOptions {
-  scanSource: string[];
-}
+import defaultPlugin from './plugins/defaultPlugin';
 
-interface ITemp {
-  name: string; // 导入后在代码中真实调用使用的 API 名
-  origin: string | null; // API 别名。null则表示该非别名导入，name就是原本名字
-  symbolPos: number; // symbol指向的声明节点在代码字符串中的起始位置
-  symbolEnd: number; // symbol指向的声明节点在代码字符串中的结束位置
-  identifierPos: number; // API 名字信息节点在代码字符串中的起始位置
-  identifierEnd: number; // API 名字信息节点在代码字符串中的结束位置
-  line: number; // 导入 API 的import语句所在代码行信息
-}
-
-type IImportItems = Record<string, ITemp>;
-
-interface IPropertyAccess {
-  baseNode: tsCompiler.Identifier | tsCompiler.PropertyAccessExpression;
-  depth: number;
-  apiName: string;
-}
+import { IOptions, ITemp, IImportItems, IPropertyAccess } from './analysis.type';
 
 class CodeAnalysis {
   _scanSource: string[];
+  apiMap: Record<string, any> = {};
 
   constructor(options: IOptions) {
     this._scanSource = options.scanSource;
@@ -185,7 +168,22 @@ class CodeAnalysis {
             const nodeSymbol = symbol.declarations[0];
             if (nodeSymbol.pos === matchImportItem.symbolPos && nodeSymbol.end === matchImportItem.symbolEnd) {
               if (node.parent) {
+                // 获取基础分析节点信息
                 const { baseNode, depth, apiName } = this._checkPropertyAccess(node);
+
+                // API调用信息统计
+                defaultPlugin().checkFun({
+                  context: this,
+                  tsCompiler,
+                  node: baseNode,
+                  depth,
+                  apiName,
+                  matchImportItem,
+                  filePath,
+                  projectName: '',
+                  httpRepo: '',
+                  line: 0,
+                });
               }
             }
           }
@@ -225,5 +223,7 @@ class CodeAnalysis {
     this._scanCode(this._scanSource, CODEFILETYPE.NORMAL);
   }
 }
+
+export type CodeAnalysisInstance = InstanceType<typeof CodeAnalysis>;
 
 export default CodeAnalysis;
