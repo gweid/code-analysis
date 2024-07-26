@@ -1,8 +1,10 @@
 import tsCompiler from 'typescript';
+import { OriginalPlugin } from './plugins/types/common.type';
 
 export interface IOptions {
   scanSource: string[];
   analysisTarget: string;
+  plugins?: OriginalPlugin[];
 }
 
 export interface ITemp {

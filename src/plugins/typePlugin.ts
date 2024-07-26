@@ -1,7 +1,10 @@
+import { CodeAnalysisInstance } from 'src/analysis';
 import { ICheckFunOpt } from './types/common.type';
 
-const typePlugin = () => {
+const typePlugin = (analysisContext: CodeAnalysisInstance) => {
   const mapName = 'typeMap';
+  const analysisMap = analysisContext.analysisMap;
+  analysisMap[mapName] = {};
 
   /**
    * 主要用来判定引入的是否属于 ts 声明类型
@@ -29,29 +32,33 @@ const typePlugin = () => {
     line,
   }: ICheckFunOpt) => {
     if (node.parent && tsCompiler.isTypeReferenceNode(node.parent)) {
-      if (!context[mapName][apiName]) {
-        context[mapName][apiName] = {};
-        context[mapName][apiName].callNum = 1;
-        context[mapName][apiName].callOrigin = matchImportItem.origin;
-        context[mapName][apiName].callFiles = {};
-        context[mapName][apiName].callFiles[filePath] = {};
-        context[mapName][apiName].callFiles[filePath].projectName = projectName;
-        context[mapName][apiName].callFiles[filePath].httpRepo = httpRepo;
-        context[mapName][apiName].callFiles[filePath].lines = [];
-        context[mapName][apiName].callFiles[filePath].lines.push(line);
+      if (!analysisMap[mapName][apiName]) {
+        analysisMap[mapName][apiName] = {};
+        analysisMap[mapName][apiName].callNum = 1;
+        analysisMap[mapName][apiName].callOrigin = matchImportItem.origin;
+        analysisMap[mapName][apiName].callFiles = {};
+        analysisMap[mapName][apiName].callFiles[filePath] = {};
+        analysisMap[mapName][apiName].callFiles[filePath].projectName = projectName;
+        analysisMap[mapName][apiName].callFiles[filePath].httpRepo = httpRepo;
+        analysisMap[mapName][apiName].callFiles[filePath].lines = [];
+        analysisMap[mapName][apiName].callFiles[filePath].lines.push(line);
       } else {
-        context[mapName][apiName].callNum++;
-        if (!Object.keys(context[mapName][apiName].callFiles).includes(filePath)) {
-          context[mapName][apiName].callFiles[filePath] = {};
-          context[mapName][apiName].callFiles[filePath].projectName = projectName;
-          context[mapName][apiName].callFiles[filePath].httpRepo = httpRepo;
-          context[mapName][apiName].callFiles[filePath].lines = [];
-          context[mapName][apiName].callFiles[filePath].lines.push(line);
+        analysisMap[mapName][apiName].callNum++;
+        if (!Object.keys(analysisMap[mapName][apiName].callFiles).includes(filePath)) {
+          analysisMap[mapName][apiName].callFiles[filePath] = {};
+          analysisMap[mapName][apiName].callFiles[filePath].projectName = projectName;
+          analysisMap[mapName][apiName].callFiles[filePath].httpRepo = httpRepo;
+          analysisMap[mapName][apiName].callFiles[filePath].lines = [];
+          analysisMap[mapName][apiName].callFiles[filePath].lines.push(line);
         } else {
-          context[mapName][apiName].callFiles[filePath].lines.push(line);
+          analysisMap[mapName][apiName].callFiles[filePath].lines.push(line);
         }
+
+        return true; // true: 命中规则, 终止执行后序插件
       }
     }
+
+    return false; // false: 未命中检测逻辑, 继续执行后序插件
   };
 
   return {

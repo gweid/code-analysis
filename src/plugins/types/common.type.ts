@@ -16,3 +16,13 @@ export interface ICheckFunOpt {
   httpRepo: string;
   line: number;
 }
+
+export type AfterHook = () => void;
+
+export type OriginalPlugin = (analysisContext: CodeAnalysisInstance) => IPlugin;
+
+export interface IPlugin {
+  mapName: string;
+  checkFun: (options: ICheckFunOpt) => boolean;
+  afterHook: AfterHook | null;
+}

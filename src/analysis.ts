@@ -4,21 +4,101 @@ import { scanNormalFiles } from './utils/file';
 import { parseFiles } from './utils/parse';
 import { CODEFILETYPE } from './constant';
 
-import defaultPlugin from './plugins/defaultPlugin';
+import { defaultPlugin, methodPlugin, typePlugin } from './plugins';
 
 import { IOptions, ITemp, IImportItems, IPropertyAccess } from './analysis.type';
+import { ICheckFunOpt, IPlugin, OriginalPlugin } from './plugins/types/common.type';
 
 class CodeAnalysis {
   _scanSource: string[];
   _analysisTarget: string;
 
-  apiMap: Record<string, any> = {};
-  methodMap: Record<string, any> = {};
-  typeMap: Record<string, any> = {};
+  analysisMap: Record<string, any> = {};
+
+  pluginQueue: IPlugin[] = [];
 
   constructor(options: IOptions) {
     this._scanSource = options.scanSource;
     this._analysisTarget = options.analysisTarget;
+
+    this.pluginQueue = [];
+
+    this._installPlugin(options.plugins || []);
+  }
+
+  // 注册插件
+  _installPlugin(plugins: OriginalPlugin[]) {
+    // 加载内置插件
+    this.pluginQueue.push(defaultPlugin(this));
+    this.pluginQueue.push(methodPlugin(this));
+    this.pluginQueue.push(typePlugin(this));
+
+    if (plugins.length > 0) {
+      plugins.forEach((plugin) => {
+        this.pluginQueue.push(plugin(this));
+      });
+    }
+  }
+
+  // 执行插件的 checkFun 函数
+  _runPlugin({
+    context,
+    tsCompiler,
+    node,
+    depth,
+    apiName,
+    matchImportItem,
+    filePath,
+    projectName,
+    httpRepo,
+    line,
+  }: ICheckFunOpt) {
+    const len = this.pluginQueue.length;
+    if (len) {
+      for (let i = 0; i < len; i++) {
+        const checkFun = this.pluginQueue[i].checkFun;
+
+        const checkFunRes = checkFun({
+          context,
+          tsCompiler,
+          node,
+          depth,
+          apiName,
+          matchImportItem,
+          filePath,
+          projectName,
+          httpRepo,
+          line,
+        });
+
+        if (checkFunRes) {
+          break;
+        }
+      }
+    }
+  }
+
+  // 执行插件的 afterHook 函数
+  _runPluginAfterHook({ importItems, ast, checker, filePath, projectName, httpRepo, baseLine }: any) {
+    const len = this.pluginQueue.length;
+    if (len) {
+      for (let i = 0; i < len; i++) {
+        const afterHook = this.pluginQueue[i].afterHook;
+        if (afterHook && typeof afterHook === 'function') {
+          afterHook(
+            this,
+            this.pluginQueue[i].mapName,
+            importItems,
+            ast,
+            checker,
+            filePath,
+            projectName,
+            httpRepo,
+            baseLine,
+          );
+        }
+      }
+    }
   }
 
   // 根据配置文件中需要扫描的文件目录，返回文件目录合集
@@ -178,8 +258,8 @@ class CodeAnalysis {
                 // 获取基础分析节点信息
                 const { baseNode, depth, apiName } = this._checkPropertyAccess(node);
 
-                // API调用信息统计
-                defaultPlugin().checkFun({
+                // 执行插件
+                this._runPlugin({
                   context: this,
                   tsCompiler,
                   node: baseNode,
@@ -199,6 +279,9 @@ class CodeAnalysis {
     };
 
     walk(ast);
+
+    // 执行插件的 AfterHook
+    // this._runPluginAfterHook(importItems, ast, checker, filePath, projectName, httpRepo, baseLine);
   }
 
   // 链式调用检查，找出链路顶点 node
