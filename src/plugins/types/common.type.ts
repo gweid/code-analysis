@@ -1,6 +1,6 @@
 import tsCompiler from 'typescript';
 import { CodeAnalysisInstance } from 'src/analysis';
-import { ITemp } from 'src/analysis.type';
+import { IImportItems, ITemp } from 'src/analysis.type';
 
 type TsCompilerType = typeof tsCompiler;
 
@@ -17,7 +17,19 @@ export interface ICheckFunOpt {
   line: number;
 }
 
-export type AfterHook = () => void;
+export interface AfterHookOpt {
+  context: CodeAnalysisInstance;
+  mapName?: string;
+  importItems: IImportItems;
+  ast: tsCompiler.SourceFile | undefined;
+  checker: tsCompiler.TypeChecker;
+  filePath: string;
+  projectName: string;
+  httpRepo: string;
+  line: number;
+}
+
+export type AfterHook = (option: AfterHookOpt) => void;
 
 export type OriginalPlugin = (analysisContext: CodeAnalysisInstance) => IPlugin;
 

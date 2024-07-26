@@ -7,7 +7,7 @@ import { CODEFILETYPE } from './constant';
 import { defaultPlugin, methodPlugin, typePlugin } from './plugins';
 
 import { IOptions, ITemp, IImportItems, IPropertyAccess } from './analysis.type';
-import { ICheckFunOpt, IPlugin, OriginalPlugin } from './plugins/types/common.type';
+import { AfterHookOpt, ICheckFunOpt, IPlugin, OriginalPlugin } from './plugins/types/common.type';
 
 class CodeAnalysis {
   _scanSource: string[];
@@ -79,23 +79,23 @@ class CodeAnalysis {
   }
 
   // 执行插件的 afterHook 函数
-  _runPluginAfterHook({ importItems, ast, checker, filePath, projectName, httpRepo, baseLine }: any) {
+  _runPluginAfterHook({ importItems, ast, checker, filePath, projectName, httpRepo, line }: AfterHookOpt) {
     const len = this.pluginQueue.length;
     if (len) {
       for (let i = 0; i < len; i++) {
         const afterHook = this.pluginQueue[i].afterHook;
         if (afterHook && typeof afterHook === 'function') {
-          afterHook(
-            this,
-            this.pluginQueue[i].mapName,
+          afterHook({
+            context: this,
+            mapName: this.pluginQueue[i].mapName,
             importItems,
             ast,
             checker,
             filePath,
             projectName,
             httpRepo,
-            baseLine,
-          );
+            line,
+          });
         }
       }
     }
@@ -281,7 +281,16 @@ class CodeAnalysis {
     walk(ast);
 
     // 执行插件的 AfterHook
-    // this._runPluginAfterHook(importItems, ast, checker, filePath, projectName, httpRepo, baseLine);
+    // this._runPluginAfterHook({
+    //   context: this,
+    //   importItems,
+    //   ast,
+    //   checker,
+    //   filePath,
+    //   projectName: '',
+    //   httpRepo: '',
+    //   line: baseLine
+    // });
   }
 
   // 链式调用检查，找出链路顶点 node
