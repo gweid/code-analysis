@@ -28,16 +28,17 @@ class CodeAnalysis {
 
   // 注册插件
   _installPlugin(plugins: OriginalPlugin[]) {
-    // 加载内置插件
-    this.pluginQueue.push(defaultPlugin(this));
-    this.pluginQueue.push(methodPlugin(this));
-    this.pluginQueue.push(typePlugin(this));
-
     if (plugins.length > 0) {
       plugins.forEach((plugin) => {
         this.pluginQueue.push(plugin(this));
       });
     }
+
+    // 加载内置插件，为什么内置插件放在最后，主要用于兜底
+    this.pluginQueue.push(methodPlugin(this));
+    this.pluginQueue.push(typePlugin(this));
+    // defaultPlugin 是插件队列中最后一个用于兜底的分析插件，因为分析工具最基础的分析指标是统计 API 调用信息，
+    this.pluginQueue.push(defaultPlugin(this));
   }
 
   // 执行插件的 checkFun 函数
