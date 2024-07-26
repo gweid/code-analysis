@@ -10,12 +10,14 @@ import { IOptions, ITemp, IImportItems, IPropertyAccess } from './analysis.type'
 import { AfterHookOpt, ICheckFunOpt, IPlugin, OriginalPlugin } from './plugins/types/common.type';
 
 class CodeAnalysis {
-  _scanSource: string[];
-  _analysisTarget: string;
+  _scanSource: string[]; // 分析文件夹
+  _analysisTarget: string; // 分析目标
 
-  analysisMap: Record<string, any> = {};
+  analysisMap: Record<string, any> = {}; // 分析信息
 
-  pluginQueue: IPlugin[] = [];
+  pluginQueue: IPlugin[] = []; // 插件队列
+
+  diagnosisInfos: any[] = []; // 诊断日志
 
   constructor(options: IOptions) {
     this._scanSource = options.scanSource;
@@ -100,6 +102,11 @@ class CodeAnalysis {
         }
       }
     }
+  }
+
+  // 记录诊断日志
+  addDiagnosisInfo(info: any) {
+    this.diagnosisInfos.push(info);
   }
 
   // 根据配置文件中需要扫描的文件目录，返回文件目录合集
