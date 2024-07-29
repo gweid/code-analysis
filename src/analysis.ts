@@ -1,7 +1,7 @@
 import tsCompiler from 'typescript';
 
-import { scanNormalFiles } from './utils/file';
-import { parseFiles } from './utils/parse';
+import { scanNormalFiles, scanVueFiles } from './utils/file';
+import { parseFiles, parseVue } from './utils/parse';
 import { CODEFILETYPE } from './constant';
 
 import { defaultPlugin, methodPlugin, typePlugin, browserPlugin } from './plugins';
@@ -20,6 +20,7 @@ class CodeAnalysis {
   _scanSource: string[]; // 分析文件夹
   _analysisTarget: string; // 分析目标
   _browserApis: string[]; // 浏览器 API
+  _isScanVue: boolean; // 是否开启 vue 文件扫描
 
   analysisMap: Record<string, any> = {}; // 分析信息
 
@@ -29,11 +30,12 @@ class CodeAnalysis {
   diagnosisInfos: any[] = []; // 诊断日志
 
   constructor(options: IOptions) {
-    const { scanSource, analysisTarget, browserApis = [], plugins = [] } = options;
+    const { scanSource, analysisTarget, browserApis = [], plugins = [], isScanVue = false } = options;
 
     this._scanSource = scanSource;
     this._analysisTarget = analysisTarget;
     this._browserApis = browserApis;
+    this._isScanVue = isScanVue;
 
     this.pluginQueue = [];
     this._installPlugin(plugins || []);
@@ -165,12 +167,17 @@ class CodeAnalysis {
   // 根据配置文件中需要扫描的文件目录，返回文件目录合集
   _scanFiles(scanSource: string[], type: CODEFILETYPE) {
     const entry: string[] = [];
+
     scanSource.forEach((item) => {
       if (type === CODEFILETYPE.NORMAL) {
-        const res = scanNormalFiles(item);
-        entry.push(...res);
+        const normalFiles = scanNormalFiles(item);
+        entry.push(...normalFiles);
+      } else if (type === CODEFILETYPE.VUE) {
+        const vueFiles = scanVueFiles(item);
+        entry.push(...vueFiles);
       }
     });
+
     return entry;
   }
 
@@ -180,16 +187,31 @@ class CodeAnalysis {
     const entry = this._scanFiles(scanSource, type);
 
     entry.forEach((filePath) => {
-      // 2、代码文件解析为 AST
-      const { ast, checker } = parseFiles(filePath);
+      try {
+        if (type === CODEFILETYPE.NORMAL) {
+          // 2、代码文件解析为 AST
+          const { ast, checker } = parseFiles(filePath);
 
-      // 3、遍历 AST 搜集 import 节点信息
-      const importItems = this._findImportItem(ast as tsCompiler.SourceFile, filePath);
+          // 3、遍历 AST 搜集 import 节点信息
+          const importItems = this._findImportItem(ast as tsCompiler.SourceFile, filePath);
 
-      // 4、遍历 AST ，对比收集到的 import 节点信息，分析 API 调用
-      // 同时，这里如果要检测所有文件的浏览器 API，那么需要判断 this._browserApis.length 放行
-      if (Object.keys(importItems).length || this._browserApis.length) {
-        this._dealAST(importItems, ast as tsCompiler.SourceFile, checker, filePath);
+          // 4、遍历 AST ，对比收集到的 import 节点信息，分析 API 调用
+          // 同时，这里如果要检测所有文件的浏览器 API，那么需要判断 this._browserApis.length 放行
+          if (Object.keys(importItems).length || this._browserApis.length) {
+            this._dealAST(importItems, ast as tsCompiler.SourceFile, checker, filePath);
+          }
+        }
+
+        // vue 文件的处理
+        if (type === CODEFILETYPE.VUE) {
+          const { ast, checker } = parseVue(filePath);
+          const importItems = this._findImportItem(ast as tsCompiler.SourceFile, filePath);
+          if (Object.keys(importItems).length || this._browserApis.length) {
+            this._dealAST(importItems, ast as tsCompiler.SourceFile, checker, filePath);
+          }
+        }
+      } catch (error) {
+        throw error;
       }
     });
   }
@@ -412,6 +434,9 @@ class CodeAnalysis {
 
   // 入口函数
   analysis() {
+    if (this._isScanVue) {
+      this._scanCode(this._scanSource, CODEFILETYPE.VUE);
+    }
     this._scanCode(this._scanSource, CODEFILETYPE.NORMAL);
   }
 }

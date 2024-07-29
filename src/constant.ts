@@ -3,3 +3,5 @@ export enum CODEFILETYPE {
   NORMAL = 'normal',
   VUE = 'vue',
 }
+
+export const VUETEMPTSDIR = 'vue_temp_ts_dir';

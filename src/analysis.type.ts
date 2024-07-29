@@ -6,6 +6,7 @@ export interface IOptions {
   analysisTarget: string;
   browserApis: string[];
   plugins?: OriginalPlugin[];
+  isScanVue?: boolean;
 }
 
 export interface ITemp {

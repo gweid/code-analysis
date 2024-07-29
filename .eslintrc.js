@@ -32,6 +32,7 @@ module.exports = {
     'prefer-const': 2, // 要求使用 const 声明那些声明后不再被修改的变量
     'one-var-declaration-per-line': 2, // 禁止一次性定义多个变量
     'no-inner-declarations': 1, // 禁止在嵌套的块中出现变量声明或 function 声明  --CUSTOM
+    'no-useless-catch': 'off',
 
     '@typescript-eslint/naming-convention': [
       'error',
