@@ -4,28 +4,39 @@ import { scanNormalFiles } from './utils/file';
 import { parseFiles } from './utils/parse';
 import { CODEFILETYPE } from './constant';
 
-import { defaultPlugin, methodPlugin, typePlugin } from './plugins';
+import { defaultPlugin, methodPlugin, typePlugin, browserPlugin } from './plugins';
 
 import { IOptions, ITemp, IImportItems, IPropertyAccess } from './analysis.type';
-import { AfterHookOpt, ICheckFunOpt, IPlugin, OriginalPlugin } from './plugins/types/common.type';
+import {
+  AfterHookOpt,
+  IBroswerPlugin,
+  ICheckFunBroswerOpt,
+  ICheckFunOpt,
+  IPlugin,
+  OriginalPlugin,
+} from './plugins/types/common.type';
 
 class CodeAnalysis {
   _scanSource: string[]; // 分析文件夹
   _analysisTarget: string; // 分析目标
+  _browserApis: string[]; // 浏览器 API
 
   analysisMap: Record<string, any> = {}; // 分析信息
 
   pluginQueue: IPlugin[] = []; // 插件队列
+  broswerPluginQueue: IBroswerPlugin[] = []; // 浏览器插件队列
 
   diagnosisInfos: any[] = []; // 诊断日志
 
   constructor(options: IOptions) {
-    this._scanSource = options.scanSource;
-    this._analysisTarget = options.analysisTarget;
+    const { scanSource, analysisTarget, browserApis = [], plugins = [] } = options;
+
+    this._scanSource = scanSource;
+    this._analysisTarget = analysisTarget;
+    this._browserApis = browserApis;
 
     this.pluginQueue = [];
-
-    this._installPlugin(options.plugins || []);
+    this._installPlugin(plugins || []);
   }
 
   // 注册插件
@@ -41,6 +52,11 @@ class CodeAnalysis {
     this.pluginQueue.push(typePlugin(this));
     // defaultPlugin 是插件队列中最后一个用于兜底的分析插件，因为分析工具最基础的分析指标是统计 API 调用信息，
     this.pluginQueue.push(defaultPlugin(this));
+
+    // 如果需要分析浏览器 API，那么需要注册浏览器分析插件
+    if (this._browserApis.length) {
+      this.broswerPluginQueue.push(browserPlugin(this));
+    }
   }
 
   // 执行插件的 checkFun 函数
@@ -104,6 +120,43 @@ class CodeAnalysis {
     }
   }
 
+  // 浏览器插件执行，单独处理
+  _runBroswerPlugin({
+    context,
+    tsCompiler,
+    node,
+    depth,
+    apiName,
+    filePath,
+    projectName,
+    httpRepo,
+    line,
+  }: ICheckFunBroswerOpt) {
+    const len = this.broswerPluginQueue.length;
+
+    if (len) {
+      for (let i = 0; i < len; i++) {
+        const checkFun = this.broswerPluginQueue[i].checkFun;
+
+        const checkFunRes = checkFun({
+          context,
+          tsCompiler,
+          node,
+          depth,
+          apiName,
+          filePath,
+          projectName,
+          httpRepo,
+          line,
+        });
+
+        if (checkFunRes) {
+          break;
+        }
+      }
+    }
+  }
+
   // 记录诊断日志
   addDiagnosisInfo(info: any) {
     this.diagnosisInfos.push(info);
@@ -134,7 +187,8 @@ class CodeAnalysis {
       const importItems = this._findImportItem(ast as tsCompiler.SourceFile, filePath);
 
       // 4、遍历 AST ，对比收集到的 import 节点信息，分析 API 调用
-      if (Object.keys(importItems).length) {
+      // 同时，这里如果要检测所有文件的浏览器 API，那么需要判断 this._browserApis.length 放行
+      if (Object.keys(importItems).length || this._browserApis.length) {
         this._dealAST(importItems, ast as tsCompiler.SourceFile, checker, filePath);
       }
     });
@@ -284,9 +338,40 @@ class CodeAnalysis {
           }
         }
       }
+
+      // 处理全局 API
+      // 全局 api 的特点就是 pos、end 值特别大，即它们的值在代码字符总长度之外
+      if (tsCompiler.isIdentifier(node) && node.escapedText && this._browserApis.includes(node.escapedText)) {
+        const symbol = checker.getSymbolAtLocation(node);
+
+        if (symbol && symbol.declarations) {
+          if (
+            (symbol.declarations.length === 1 && symbol.declarations[0].pos > ast.end) ||
+            symbol.declarations.length > 1
+          ) {
+            const { baseNode, depth, apiName } = this._checkPropertyAccess(node);
+
+            // 执行浏览器 API 分析插件
+            this._runBroswerPlugin({
+              context: this,
+              tsCompiler,
+              node: baseNode,
+              depth,
+              apiName,
+              filePath,
+              projectName: '',
+              httpRepo: '',
+              line,
+            });
+          }
+        }
+      }
     };
 
     walk(ast);
+
+    const res = this.analysisMap;
+    console.log(res);
 
     // 执行插件的 AfterHook
     // this._runPluginAfterHook({

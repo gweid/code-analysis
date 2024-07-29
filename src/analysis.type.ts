@@ -4,6 +4,7 @@ import { OriginalPlugin } from './plugins/types/common.type';
 export interface IOptions {
   scanSource: string[];
   analysisTarget: string;
+  browserApis: string[];
   plugins?: OriginalPlugin[];
 }
 

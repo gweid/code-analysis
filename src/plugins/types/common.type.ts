@@ -17,10 +17,22 @@ export interface ICheckFunOpt {
   line: number;
 }
 
+export interface ICheckFunBroswerOpt {
+  context: CodeAnalysisInstance;
+  tsCompiler: TsCompilerType;
+  node: tsCompiler.Identifier | tsCompiler.PropertyAccessExpression;
+  depth: number;
+  apiName: string;
+  filePath: string;
+  projectName: string;
+  httpRepo: string;
+  line: number;
+}
+
 export interface AfterHookOpt {
   context: CodeAnalysisInstance;
   mapName?: string;
-  importItems: IImportItems;
+  importItems?: IImportItems;
   ast: tsCompiler.SourceFile | undefined;
   checker: tsCompiler.TypeChecker;
   filePath: string;
@@ -36,5 +48,11 @@ export type OriginalPlugin = (analysisContext: CodeAnalysisInstance) => IPlugin;
 export interface IPlugin {
   mapName: string;
   checkFun: (options: ICheckFunOpt) => boolean;
+  afterHook: AfterHook | null;
+}
+
+export interface IBroswerPlugin {
+  mapName: string;
+  checkFun: (options: ICheckFunBroswerOpt) => boolean;
   afterHook: AfterHook | null;
 }

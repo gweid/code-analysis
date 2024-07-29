@@ -19,7 +19,7 @@ const typePlugin = (analysisContext: CodeAnalysisInstance) => {
    * @param httpRepo 用于在代码分析报告展示在线浏览代码文件的http链接前缀
    * @param line  API调用所在代码文件中的行信息
    */
-  const isTypeCheck = ({
+  const checkFun = ({
     context,
     tsCompiler,
     node,
@@ -63,7 +63,7 @@ const typePlugin = (analysisContext: CodeAnalysisInstance) => {
 
   return {
     mapName,
-    checkFun: isTypeCheck,
+    checkFun,
     afterHook: null,
   };
 };

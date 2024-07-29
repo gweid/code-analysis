@@ -1,13 +1,13 @@
 import { CodeAnalysisInstance } from 'src/analysis';
-import { ICheckFunOpt } from './types/common.type';
+import { ICheckFunBroswerOpt } from './types/common.type';
 
-const defaultPlugin = (analysisContext: CodeAnalysisInstance) => {
-  const mapName = 'apiMap';
+const browserPlugin = (analysisContext: CodeAnalysisInstance) => {
+  const mapName = 'browserMap';
   const analysisMap = analysisContext.analysisMap;
   analysisMap[mapName] = {};
 
   /**
-   * API 调用信息统计
+   * 统计以全局变量形式在代码中直接调用的 API，比如依托于浏览器环境或者直接挂载到 window 上的 API
    * @param context codeAnalysis分析实例上下文
    * @param tsCompiler typescript编译器
    * @param node 基准分析节点baseNode
@@ -25,16 +25,14 @@ const defaultPlugin = (analysisContext: CodeAnalysisInstance) => {
     node,
     depth,
     apiName,
-    matchImportItem,
     filePath,
     projectName,
     httpRepo,
     line,
-  }: ICheckFunOpt) => {
+  }: ICheckFunBroswerOpt) => {
     if (!analysisMap[mapName][apiName]) {
       analysisMap[mapName][apiName] = {};
       analysisMap[mapName][apiName].callNum = 1;
-      analysisMap[mapName][apiName].callOrigin = matchImportItem.origin;
       analysisMap[mapName][apiName].callFiles = {};
       analysisMap[mapName][apiName].callFiles[filePath] = {};
       analysisMap[mapName][apiName].callFiles[filePath].projectName = projectName;
@@ -66,4 +64,4 @@ const defaultPlugin = (analysisContext: CodeAnalysisInstance) => {
   };
 };
 
-export default defaultPlugin;
+export default browserPlugin;

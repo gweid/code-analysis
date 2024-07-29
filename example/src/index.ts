@@ -3,6 +3,7 @@ import * as utilsTool from './utils';
 import { getFullName } from './utils';
 import { testFunc as getTest } from './utils';
 import { toolFunc } from './tools';
+import { getCookie, getLocalStorage, historyBack, historyUtil } from './browser';
 
 const fullName = getFullName('li', 'xiaolong');
 const testTxt = getTest();
@@ -23,3 +24,10 @@ const fullFunc = () => {
 };
 
 console.log(fullFunc());
+
+const cookies = getCookie();
+console.log(cookies);
+const token = getLocalStorage('token');
+console.log(token);
+historyBack();
+historyUtil();
