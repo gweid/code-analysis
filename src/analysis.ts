@@ -14,7 +14,7 @@ import {
   ICheckFunOpt,
   IPlugin,
   OriginalPlugin,
-} from './plugins/types/common.type';
+} from './plugins/analysisPlugins/types/common.type';
 
 class CodeAnalysis {
   _scanSource: string[]; // 分析文件夹
@@ -460,9 +460,6 @@ class CodeAnalysis {
 
     // 黑名单标记
     this._blackTag();
-
-    const aa = this.analysisMap;
-    console.log(aa);
   }
 }
 

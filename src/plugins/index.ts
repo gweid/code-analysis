@@ -1,6 +1,8 @@
-import defaultPlugin from './defaultPlugin';
-import methodPlugin from './methodPlugin';
-import typePlugin from './typePlugin';
-import browserPlugin from './browserPlugin';
+import defaultPlugin from './analysisPlugins/defaultPlugin';
+import methodPlugin from './analysisPlugins/methodPlugin';
+import typePlugin from './analysisPlugins/typePlugin';
+import browserPlugin from './analysisPlugins/browserPlugin';
 
-export { defaultPlugin, methodPlugin, typePlugin, browserPlugin };
+import defaultScorePlugin from './scorePlugins/defultScorePlugin';
+
+export { defaultPlugin, methodPlugin, typePlugin, browserPlugin, defaultScorePlugin };

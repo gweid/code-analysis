@@ -1,5 +1,5 @@
 import tsCompiler from 'typescript';
-import { OriginalPlugin } from './plugins/types/common.type';
+import { OriginalPlugin } from './plugins/analysisPlugins/types/common.type';
 
 export interface IOptions {
   scanSource: string[];
