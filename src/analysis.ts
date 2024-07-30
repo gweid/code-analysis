@@ -6,7 +6,7 @@ import { CODEFILETYPE } from './constant';
 
 import { defaultPlugin, methodPlugin, typePlugin, browserPlugin, defaultScorePlugin } from './plugins';
 
-import { IOptions, ITemp, IImportItems, IPropertyAccess, ScorePlugin } from './analysis.type';
+import { IAnalysisOptions, ITemp, IImportItems, IPropertyAccess, ScorePlugin } from './analysis.type';
 import {
   AfterHookOpt,
   IBroswerPlugin,
@@ -33,7 +33,7 @@ class CodeAnalysis {
 
   diagnosisInfos: any[] = []; // 诊断日志
 
-  constructor(options: IOptions) {
+  constructor(options: IAnalysisOptions) {
     const {
       scanSource,
       analysisTarget,
@@ -405,9 +405,6 @@ class CodeAnalysis {
     };
 
     walk(ast);
-
-    const res = this.analysisMap;
-    console.log(res);
 
     // 执行插件的 AfterHook
     // this._runPluginAfterHook({

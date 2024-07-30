@@ -4,7 +4,7 @@ import { DefaultScorePlugin } from './plugins/scorePlugins/score.type';
 
 export type ScorePlugin = 'default' | null | DefaultScorePlugin;
 
-export interface IOptions {
+export interface IAnalysisOptions {
   scanSource: string[];
   analysisTarget: string;
   browserApis?: string[];
@@ -12,6 +12,7 @@ export interface IOptions {
   isScanVue?: boolean;
   blackList?: string[];
   scorePlugin?: ScorePlugin;
+  reportTitle?: string;
 }
 
 export interface ITemp {

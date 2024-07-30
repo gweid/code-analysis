@@ -5,3 +5,7 @@ export enum CODEFILETYPE {
 }
 
 export const VUETEMPTSDIR = 'vue_temp_ts_dir';
+
+export const REPORTTITLE = '依赖调用分析报告';
+
+export const TIMEFORMAT = 'YYYY-MM-DD HH:mm:ss';
