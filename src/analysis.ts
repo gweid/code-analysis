@@ -28,6 +28,8 @@ class CodeAnalysis {
   pluginQueue: IPlugin[] = []; // 插件队列
   broswerPluginQueue: IBroswerPlugin[] = []; // 浏览器插件队列
 
+  importItemMap: Record<string, any> = {}; //
+
   analysisMap: Record<string, Record<string, any>> = {}; // 收集的分析数据
   scoreMap: DefaultScorePluginReturn = null;
 
@@ -52,6 +54,10 @@ class CodeAnalysis {
     this._scorePlugin = scorePlugin;
 
     this.pluginQueue = [];
+    this.broswerPluginQueue = [];
+
+    this.importItemMap = {};
+
     this._installPlugin(plugins || []);
   }
 
@@ -248,6 +254,15 @@ class CodeAnalysis {
         identifierEnd,
         line,
       };
+
+      if (!that.importItemMap[name]) {
+        that.importItemMap[name] = {};
+        that.importItemMap[name].callOrigin = origin;
+        that.importItemMap[name].callFiles = [];
+        that.importItemMap[name].callFiles.push(filePath);
+      } else {
+        that.importItemMap[name].callFiles.push(filePath);
+      }
     };
 
     // 遍历 ast
