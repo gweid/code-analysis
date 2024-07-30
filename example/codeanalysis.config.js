@@ -4,4 +4,5 @@ module.exports = {
   browserApis: ['window', 'document', 'history'],
   isScanVue: true,
   blackList: ['getFullName'],
+  scorePlugin: 'default',
 };

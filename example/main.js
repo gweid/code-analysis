@@ -3,6 +3,4 @@ const codeanalysisConfig = require('./codeanalysis.config');
 
 const codeAnalysis = new CodeAnalysisMoudle(codeanalysisConfig);
 
-const entry = codeAnalysis.analysis();
-
-console.log(entry);
+codeAnalysis.analysis();

@@ -4,9 +4,9 @@ import { scanNormalFiles, scanVueFiles } from './utils/file';
 import { parseFiles, parseVue } from './utils/parse';
 import { CODEFILETYPE } from './constant';
 
-import { defaultPlugin, methodPlugin, typePlugin, browserPlugin } from './plugins';
+import { defaultPlugin, methodPlugin, typePlugin, browserPlugin, defaultScorePlugin } from './plugins';
 
-import { IOptions, ITemp, IImportItems, IPropertyAccess } from './analysis.type';
+import { IOptions, ITemp, IImportItems, IPropertyAccess, ScorePlugin } from './analysis.type';
 import {
   AfterHookOpt,
   IBroswerPlugin,
@@ -15,6 +15,7 @@ import {
   IPlugin,
   OriginalPlugin,
 } from './plugins/analysisPlugins/types/common.type';
+import { DefaultScorePluginReturn } from './plugins/scorePlugins/score.type';
 
 class CodeAnalysis {
   _scanSource: string[]; // 分析文件夹
@@ -22,22 +23,33 @@ class CodeAnalysis {
   _browserApis: string[]; // 浏览器 API
   _isScanVue: boolean; // 是否开启 vue 文件扫描
   _blackList: string[]; // 黑名单 API
-
-  analysisMap: Record<string, Record<string, any>> = {}; // 收集的分析数据
+  _scorePlugin: ScorePlugin;
 
   pluginQueue: IPlugin[] = []; // 插件队列
   broswerPluginQueue: IBroswerPlugin[] = []; // 浏览器插件队列
 
+  analysisMap: Record<string, Record<string, any>> = {}; // 收集的分析数据
+  scoreMap: DefaultScorePluginReturn = null;
+
   diagnosisInfos: any[] = []; // 诊断日志
 
   constructor(options: IOptions) {
-    const { scanSource, analysisTarget, browserApis = [], plugins = [], isScanVue = false, blackList = [] } = options;
+    const {
+      scanSource,
+      analysisTarget,
+      browserApis = [],
+      plugins = [],
+      isScanVue = false,
+      blackList = [],
+      scorePlugin = null,
+    } = options;
 
     this._scanSource = scanSource;
     this._analysisTarget = analysisTarget;
     this._browserApis = browserApis;
     this._isScanVue = isScanVue;
     this._blackList = blackList;
+    this._scorePlugin = scorePlugin;
 
     this.pluginQueue = [];
     this._installPlugin(plugins || []);
@@ -460,6 +472,13 @@ class CodeAnalysis {
 
     // 黑名单标记
     this._blackTag();
+
+    // 进行数据整理、评分
+    if (typeof this._scorePlugin === 'function') {
+      this.scoreMap = this._scorePlugin(this);
+    } else if (this._scorePlugin === 'default') {
+      this.scoreMap = defaultScorePlugin(this);
+    }
   }
 }
 

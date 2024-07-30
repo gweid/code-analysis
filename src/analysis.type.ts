@@ -1,5 +1,8 @@
 import tsCompiler from 'typescript';
 import { OriginalPlugin } from './plugins/analysisPlugins/types/common.type';
+import { DefaultScorePlugin } from './plugins/scorePlugins/score.type';
+
+export type ScorePlugin = 'default' | null | DefaultScorePlugin;
 
 export interface IOptions {
   scanSource: string[];
@@ -8,6 +11,7 @@ export interface IOptions {
   plugins?: OriginalPlugin[];
   isScanVue?: boolean;
   blackList?: string[];
+  scorePlugin?: ScorePlugin;
 }
 
 export interface ITemp {
