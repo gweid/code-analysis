@@ -21,8 +21,9 @@ class CodeAnalysis {
   _analysisTarget: string; // 分析目标
   _browserApis: string[]; // 浏览器 API
   _isScanVue: boolean; // 是否开启 vue 文件扫描
+  _blackList: string[]; // 黑名单 API
 
-  analysisMap: Record<string, any> = {}; // 分析信息
+  analysisMap: Record<string, Record<string, any>> = {}; // 收集的分析数据
 
   pluginQueue: IPlugin[] = []; // 插件队列
   broswerPluginQueue: IBroswerPlugin[] = []; // 浏览器插件队列
@@ -30,12 +31,13 @@ class CodeAnalysis {
   diagnosisInfos: any[] = []; // 诊断日志
 
   constructor(options: IOptions) {
-    const { scanSource, analysisTarget, browserApis = [], plugins = [], isScanVue = false } = options;
+    const { scanSource, analysisTarget, browserApis = [], plugins = [], isScanVue = false, blackList = [] } = options;
 
     this._scanSource = scanSource;
     this._analysisTarget = analysisTarget;
     this._browserApis = browserApis;
     this._isScanVue = isScanVue;
+    this._blackList = blackList;
 
     this.pluginQueue = [];
     this._installPlugin(plugins || []);
@@ -432,12 +434,35 @@ class CodeAnalysis {
     }
   }
 
+  // 将 API 黑名单标记，记号为: isBlack
+  _blackTag() {
+    // 没配置需要检测的黑名单 API，不需要继续执行
+    if (!this._blackList.length) return;
+
+    Object.keys(this.analysisMap).forEach((item) => {
+      Object.keys(this.analysisMap[item]).forEach((apiName) => {
+        if (this._blackList.includes(apiName)) {
+          this.analysisMap[item][apiName].isBlack = true;
+        }
+      });
+    });
+  }
+
   // 入口函数
   analysis() {
+    // 分析 vue 文件
     if (this._isScanVue) {
       this._scanCode(this._scanSource, CODEFILETYPE.VUE);
     }
+
+    // 分析其它文件
     this._scanCode(this._scanSource, CODEFILETYPE.NORMAL);
+
+    // 黑名单标记
+    this._blackTag();
+
+    const aa = this.analysisMap;
+    console.log(aa);
   }
 }
 

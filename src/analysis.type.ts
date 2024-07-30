@@ -4,9 +4,10 @@ import { OriginalPlugin } from './plugins/types/common.type';
 export interface IOptions {
   scanSource: string[];
   analysisTarget: string;
-  browserApis: string[];
+  browserApis?: string[];
   plugins?: OriginalPlugin[];
   isScanVue?: boolean;
+  blackList?: string[];
 }
 
 export interface ITemp {

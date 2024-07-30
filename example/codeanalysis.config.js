@@ -3,4 +3,5 @@ module.exports = {
   analysisTarget: './utils',
   browserApis: ['window', 'document', 'history'],
   isScanVue: true,
+  blackList: ['getFullName'],
 };

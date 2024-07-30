@@ -1,10 +1,10 @@
 import path from 'path';
 import JsMD5 from 'js-md5';
 import tsCompiler from 'typescript';
-import vueCompiler from '@vue/compiler-dom';
 
 import { VUETEMPTSDIR } from '../constant';
 import { getFileCode, writeFile } from './file';
+const vueCompiler = require('@vue/compiler-dom');
 
 // 读取代码，解析成 ast
 export const parseFiles = (fileName: string) => {
@@ -34,7 +34,7 @@ export const parseVue = (fileName: string) => {
   let tsCode = '';
   let baseLine = 0;
 
-  children.forEach((ele) => {
+  children.forEach((ele: any) => {
     // @ts-ignore
     if (ele.tag === 'script') {
       // @ts-ignore
