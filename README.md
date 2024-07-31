@@ -14,7 +14,8 @@
    - 插件执行
 7. 分析不是 import 导入的 API，比如全局 API
 8. 处理 VUE 项目
-   - @vue/compiler-dom 转换拿到 script 代码
+   - @vue/compiler-dom 转换 vue 文件拿到 script 部分代码
+   - 将 script 部分代码进行 ast 处理
 9. 对收集到的 API 信息，进行整理
    - 代码评分
    - 代码告警
