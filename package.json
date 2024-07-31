@@ -5,6 +5,9 @@
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "typings": "dist/index.d.ts",
+  "bin": {
+    "gca": "dist/cli.cjs.js"
+  },
   "scripts": {
     "start": "rimraf dist && rollup -c -w",
     "watch": "rollup -c -w",
@@ -32,11 +35,12 @@
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-node-resolve": "^15.0.2",
     "@vue/compiler-dom": "3.0.2",
+    "commander": "^12.1.0",
     "dayjs": "^1.11.12",
     "glob": "^9.3.4",
     "js-md5": "^0.8.3",
     "rollup-plugin-typescript2": "^0.34.1",
-    "typescript": "^5.0.3"
+    "typescript": "^5.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.21.4",
@@ -54,6 +58,7 @@
     "rimraf": "^4.4.1",
     "rollup": "^2.79.1",
     "rollup-plugin-babel": "^4.4.0",
+    "rollup-plugin-preserve-shebang": "^1.0.1",
     "tslib": "^2.5.0"
   },
   "engines": {
